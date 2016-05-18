@@ -76,7 +76,7 @@ class Train(object):
     def _station_point(uztimestamp, station):
         result = dict(
             station=station.title,
-            station_id=station.station_id)
+            station_id=station.id)
         result.update(uztimestamp.to_dict())
         return result
 

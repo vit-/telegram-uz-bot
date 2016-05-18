@@ -59,10 +59,12 @@ class Deserializer(object):
 @bot.command(r'/trains (?P<date>[\w.]+) (?P<source>\w+) (?P<destination>\w+)')
 async def list_trains(chat, match):
     with UZClient() as uz:
-        date, source, destination = await Deserializer(uz).load(match.groupdict())
+        date, source, destination = await Deserializer(uz).load(
+            match.groupdict())
 
         trains = await uz.list_trains(date, source, destination)
-        msg = 'Trains from %s to %s on %s:\n\n' % (source, destination, date.date())
+        msg = 'Trains from %s to %s on %s:\n\n' % (
+            source, destination, date.date())
         for train in trains:
             msg += '%s\n==========\n\n' % train.info()
         return await chat.send_text(msg)
@@ -85,7 +87,7 @@ async def stop_scan(chat, match):
     return scanner.stop_scan(scan_id)
 
 
-@bot.command(r'/scan (?P<date>[\w.]+) (?P<source>\w+) (?P<destination>\w+) (?P<train_num>\w+)( (?P<ct_letter>\w+))?')
+@bot.command(r'/scan (?P<date>[\w.]+) (?P<source>\w+) (?P<destination>\w+) (?P<train_num>\w+)( (?P<ct_letter>\w+))?')  # noqa
 async def scan(chat, match):
     with UZClient() as uz:
         raw_data = match.groupdict()

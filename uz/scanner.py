@@ -52,7 +52,7 @@ class UZScanner(object):
         return data['attempts'], data['error']
 
     def stop_scan(self, scan_id):
-        if scan_id is self.__state:
+        if scan_id in self.__state:
             del self.__state[scan_id]
 
     async def scan(self, scan_id):

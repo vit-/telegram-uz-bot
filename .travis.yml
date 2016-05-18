@@ -4,5 +4,7 @@ python:
 install:
   - pip install -r requirements-dev.txt
   - pip install coveralls
-script: py.test
+script:
+  - flake8
+  - py.test
 after_success: coveralls

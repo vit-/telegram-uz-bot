@@ -107,6 +107,9 @@ class CoachType(object):
     def __str__(self):
         return '%s: %s (%s)' % (self.letter, self.places, self.title)
 
+    def __eq__(self, other):
+        return self.to_dict() == other.to_dict()
+
     @classmethod
     def from_dict(cls, dikt):
         return cls(*(dikt[i] for i in ('letter', 'places', 'title')))
@@ -133,7 +136,7 @@ class Coach(object):
         self.services = services
 
     def __repr__(self):
-        return 'Coach(%r %r %r %r %r %r %r %r %r)' % (
+        return 'Coach(%r, %r, %r, %r, %r, %r, %r, %r, %r)' % (
             self.allow_bonus,
             self.klass,
             self.type_id,
@@ -146,6 +149,9 @@ class Coach(object):
 
     def __str__(self):
         return 'Coach %s' % self.num
+
+    def __eq__(self, other):
+        return self.to_dict() == other.to_dict()
 
     @classmethod
     def from_dict(cls, dikt):

@@ -7,12 +7,19 @@ import aiotg
 
 from dateutil import parser as date_parser
 
+from dev_tools.bot import StdOutBot
 from uz.client import UZClient
 from uz.scanner import UZScanner, UknkownScanID
 
 TIMEOUT = 10
 TOKEN = os.environ.get('TG_BOT_TOKEN')
-assert TOKEN, 'TG_BOT_TOKEN env var is not specified'
+
+
+if TOKEN:
+    bot = aiotg.Bot(api_token=TOKEN, name='uz_ticket_bot', api_timeout=TIMEOUT)
+else:
+    print('TG_BOT_TOKEN env var is not specified, using StdOutBot')
+    bot = StdOutBot(api_token=None)
 
 
 def ticket_booked_cb(orig_msg, session_id):
@@ -22,7 +29,6 @@ def ticket_booked_cb(orig_msg, session_id):
     return chat.send_text(msg)
 
 
-bot = aiotg.Bot(api_token=TOKEN, name='uz_ticket_bot', api_timeout=TIMEOUT)
 scanner = UZScanner(ticket_booked_cb, timeout=TIMEOUT)
 
 

@@ -54,7 +54,7 @@ class TestUZClient(object):
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize('status,body,ex', [
-        (400, 'body', client.BadReqeust),
+        (400, 'body', client.BadRequest),
         (404, 'body', client.HTTPError),
         (200, {'error': True}, client.ResponseError)])
     async def test_call_raise(self, status, body, ex):

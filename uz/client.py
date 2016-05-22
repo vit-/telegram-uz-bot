@@ -83,7 +83,7 @@ class UZClient(object):
                         json = await response.json()
                     except Exception:
                         json = None
-                    ex = BadReqeust if response.status == 400 else HTTPError
+                    ex = BadRequest if response.status == 400 else HTTPError
                     raise ex(response.status, body, kwargs.get('data'), json)
                 if raw:
                     return body
@@ -188,7 +188,7 @@ class HTTPError(UZException):
                 status_code, data, body))
 
 
-class BadReqeust(HTTPError):
+class BadRequest(HTTPError):
     pass
 
 

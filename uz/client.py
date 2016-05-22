@@ -81,16 +81,15 @@ class UZClient(object):
                 if not response.status == 200:
                     try:
                         json = await response.json()
-                    except Exception:
-                        pass
-                    ex = BadReqeust if response.status == 400 else HTTPError
+                    except Exception:  # TODO: narrow exception
+                        json = None
+                    ex = BadRequest if response.status == 400 else HTTPError
                     raise ex(response.status, body, kwargs.get('data'), json)
                 if raw:
                     return body
                 json = await response.json()
                 if json.get('error'):
-                    raise ResponseError(
-                        response.status, body, kwargs.get('data'), json)
+                    raise ResponseError(response.status, body, kwargs.get('data'), json)
                 return json
 
     async def search_stations(self, name):
@@ -139,7 +138,7 @@ class UZClient(object):
             date_dep=train.departure_time.timestamp
         )
         result = await self.call('purchase/coach/', data=data)
-        return list(chain(*result['value']['places'].values()))
+        return set(chain(*result['value']['places'].values()))
 
     async def book_seat(self, train, coach, seat, firstname, lastname):
         data = dict(
@@ -188,7 +187,7 @@ class HTTPError(UZException):
                 status_code, data, body))
 
 
-class BadReqeust(HTTPError):
+class BadRequest(HTTPError):
     pass
 
 

@@ -29,7 +29,7 @@ class UZScanner(object):
         self.session.close()
 
     async def add_item(self, success_cb_id, firstname, lastname, date,
-                       source, destination, train_num, ct_letter):
+                       source, destination, train_num, ct_letter=None):
         scan_id = uuid4().hex
         self.__state[scan_id] = dict(
             success_cb_id=success_cb_id,

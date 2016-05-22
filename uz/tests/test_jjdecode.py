@@ -1,12 +1,7 @@
-import os
 import pytest
+
 from uz.jjdecode import JJDecoder
-
-
-def read_file(path):
-    here = os.path.abspath(os.path.dirname(__file__))
-    with open(os.path.join(here, path)) as f:
-        return f.read()
+from uz.tests import read_file
 
 
 @pytest.fixture

@@ -1,37 +1,10 @@
-import asyncio
 from datetime import datetime
 
 import mock
 import pytest
 
 from uz import client, model
-
-
-class AIOMock(mock.MagicMock):
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, exc_type, exc_value, traceback):
-        return
-
-
-class Awaitable(object):
-
-    def __init__(self, value):
-        self.value = value
-
-    def __await__(self):
-        yield from asyncio.sleep(0)
-        return self.value
-
-
-def http_response(body, status=200):
-    response = AIOMock()
-    response.status = status
-    response.read.return_value = Awaitable(str(body).encode('utf-8'))
-    response.json.return_value = Awaitable(body)
-    return response
+from uz.tests import http_response, AIOMock
 
 
 class TestUZClient(object):

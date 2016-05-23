@@ -4,7 +4,7 @@ import os
 import sys
 
 import aiotg
-
+import datadog
 from dateutil import parser as date_parser
 
 from dev_tools.bot import StdOutBot
@@ -127,11 +127,21 @@ def configure_logging():
         log.addHandler(handler)
 
 
+def init_datadog():
+    opts = {
+        'statsd_host': os.environ.get('STATSD_HOST'),
+        'statsd_port': os.environ.get('STATSD_PORT')
+    }
+    datadog.initialize(**opts)
+
+
 if __name__ == '__main__':
     configure_logging()
+    init_datadog()
     loop = asyncio.get_event_loop()
     loop.create_task(bot.loop())
     print('Running...')
+    scanner.run()
     try:
         loop.run_forever()
     except KeyboardInterrupt:

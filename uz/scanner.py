@@ -3,6 +3,7 @@ import logging
 from uuid import uuid4
 
 import aiohttp
+from datadog import statsd
 
 from uz.client import UZClient, ResponseError
 
@@ -12,6 +13,8 @@ logger = logging.getLogger(__name__)
 
 class UZScanner(object):
 
+    metric_sample_rate = 5
+
     def __init__(self, success_cb, timeout=60):
         self.success_cb = success_cb
 
@@ -20,7 +23,11 @@ class UZScanner(object):
         self.session = aiohttp.ClientSession()
         self.client = UZClient(self.session)
         self.__state = dict()
+        self.__running = False
+
+    def run(self):
         self.__running = True
+        asyncio.ensure_future(self.emit_stats())
 
     def stop(self):
         self.__running = False
@@ -28,8 +35,17 @@ class UZScanner(object):
     def cleanup(self):
         self.session.close()
 
+    async def emit_stats(self):
+        while self.__running:
+            statsd.gauge(
+                'scanner.active_scans', len(self.__state), sample_rate=self.metric_sample_rate)
+            await asyncio.sleep(self.metric_sample_rate)
+
     async def add_item(self, success_cb_id, firstname, lastname, date,
                        source, destination, train_num, ct_letter=None):
+        if not self.__running:
+            logger.warning('Adding item to not running scanner')
+
         scan_id = uuid4().hex
         self.__state[scan_id] = dict(
             success_cb_id=success_cb_id,

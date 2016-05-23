@@ -14,6 +14,8 @@ from uz.scanner import UZScanner, UknkownScanID
 TIMEOUT = 10
 TOKEN = os.environ.get('TG_BOT_TOKEN')
 
+logger = logging.getLogger('main')
+
 
 if TOKEN:
     bot = aiotg.Bot(api_token=TOKEN, name='uz_ticket_bot', api_timeout=TIMEOUT)
@@ -115,6 +117,7 @@ def configure_logging():
     level = logging.DEBUG
     loggers = [
         # 'aiotg',
+        'main',
         'uz.client',
         'uz.scanner',
     ]
@@ -140,13 +143,13 @@ if __name__ == '__main__':
     init_datadog()
     loop = asyncio.get_event_loop()
     loop.create_task(bot.loop())
-    print('Running...')
+    logger.warning('Running...')
     scanner.run()
     try:
         loop.run_forever()
     except KeyboardInterrupt:
-        print('Shutting down...')
-        print('Waiting for all tasks to complete...')
+        logger.warning('Shutting down...')
+        logger.warning('Waiting for all tasks to complete...')
         bot.stop()
         scanner.stop()
         pending = asyncio.Task.all_tasks()

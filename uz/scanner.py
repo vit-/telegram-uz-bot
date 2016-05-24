@@ -38,7 +38,7 @@ class UZScanner(object):
     async def emit_stats(self):
         while self.__running:
             cnt = len(self.__state)
-            statsd.gauge('scanner.active_scans', cnt, sample_rate=self.metric_sample_rate)
+            statsd.gauge('scanner.active_scans', cnt)
             logger.debug('[statsd] scanner.active_scans, %s', cnt)
             await asyncio.sleep(self.metric_sample_rate)
 

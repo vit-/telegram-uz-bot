@@ -24,6 +24,7 @@ class TestUZScannerLive(object):
         date = datetime.today() + timedelta(days=21)
 
         scan = scanner.UZScanner(self.success_cb)
+        scan.run()
         with client.UZClient() as uz:
             trains = await uz.list_trains(date, source_station, destination_station)
             train = trains[0]

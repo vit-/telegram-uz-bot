@@ -114,7 +114,7 @@ async def scan(chat, match):
 
 
 def configure_logging():
-    level = logging.DEBUG
+    level = logging.WARNING
     loggers = [
         # 'aiotg',
         'main',

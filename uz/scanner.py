@@ -3,9 +3,10 @@ import logging
 from uuid import uuid4
 
 import aiohttp
-from datadog import statsd
 
 from uz.client import UZClient, ResponseError
+from uz.metrics import statsd
+from uz.utils import reliable_async_sleep
 
 
 logger = logging.getLogger(__name__)
@@ -15,19 +16,23 @@ class UZScanner(object):
 
     metric_sample_rate = 5
 
-    def __init__(self, success_cb, timeout=60):
+    def __init__(self, success_cb, delay=60):
         self.success_cb = success_cb
 
         self.loop = asyncio.get_event_loop()
-        self.timeout = timeout
+        self.delay = delay
         self.session = aiohttp.ClientSession()
         self.client = UZClient(self.session)
         self.__state = dict()
         self.__running = False
 
-    def run(self):
+    async def run(self):
         self.__running = True
         asyncio.ensure_future(self.emit_stats())
+        while self.__running:
+            for scan_id, data in self.__state.items():
+                asyncio.ensure_future(self.scan(scan_id, data))
+            await reliable_async_sleep(self.delay)
 
     def stop(self):
         self.__running = False
@@ -39,7 +44,6 @@ class UZScanner(object):
         while self.__running:
             cnt = len(self.__state)
             statsd.gauge('scanner.active_scans', cnt)
-            logger.debug('[statsd] scanner.active_scans, %s', cnt)
             await asyncio.sleep(self.metric_sample_rate)
 
     async def add_item(self, success_cb_id, firstname, lastname, date,
@@ -57,12 +61,13 @@ class UZScanner(object):
             destination=destination,
             train_num=train_num,
             ct_letter=ct_letter,
+            lock=asyncio.Lock(),
             attempts=0,
             error=None)
-        asyncio.ensure_future(self.scan(scan_id))
         return scan_id
 
     def status(self, scan_id):
+        # TODO: add protection. status requests should be limited to scans for current user only
         data = self.__state.get(scan_id)
         if data is None:
             raise UknkownScanID(scan_id)
@@ -72,68 +77,61 @@ class UZScanner(object):
         if scan_id in self.__state:
             del self.__state[scan_id]
 
-    async def scan(self, scan_id):
-        while self.__running:
-            data = self.__state.get(scan_id)
-            if data is None:
-                logger.info(
-                    'Scan id {} is not in state anymore. Stopping scan'.format(
-                        scan_id))
-                return
+    @staticmethod
+    def handle_error(scan_id, data, error):
+        data['error'] = error
+        logger.debug('[%s] %s', scan_id, error)
 
+    @staticmethod
+    def find_coach_type(train, ct_letter):
+        for coach_type in train.coach_types:
+            if coach_type.letter == ct_letter:
+                return coach_type
+
+    @staticmethod
+    async def book(train, coach_types, firstname, lastname):
+        with UZClient() as client:
+            for coach_type in coach_types:
+                for coach in await client.list_coaches(train, coach_type):
+                    try:
+                        seats = await client.list_seats(train, coach)
+                    except ResponseError:
+                        continue
+                    for seat in seats:
+                        try:
+                            await client.book_seat(train, coach, seat, firstname, lastname)
+                        except ResponseError:
+                            continue
+                        return client.get_session_id()
+
+    async def scan(self, scan_id, data):
+        if data['lock'].locked():
+            return
+
+        async with data['lock']:
             data['attempts'] += 1
 
-            train = None
-            for i in await self.client.list_trains(
-                    data['date'], data['source'], data['destination']):
-                if i.num == data['train_num']:
-                    train = i
-                    break
+            train = await self.client.fetch_train(
+                data['date'], data['source'], data['destination'], data['train_num'])
             if train is None:
-                error = 'Train {} not found'.format(data['train_num'])
-                data['error'] = error
-                logger.debug('[{}] {}'.format(scan_id, error))
-                await asyncio.sleep(self.timeout)
-                continue
+                return self.handle_error(
+                    scan_id, data, 'Train {} not found'.format(data['train_num']))
 
             if data['ct_letter']:
-                ct = None
-                for i in train.coach_types:
-                    if i.letter == data['ct_letter']:
-                        ct = i
-                        break
-                if ct is None:
-                    error = 'Coach type {} not found'.format(data['ct_letter'])
-                    data['error'] = error
-                    logger.debug('[{}] {}'.format(scan_id, error))
-                    await asyncio.sleep(self.timeout)
-                    continue
-                coach_types = [ct]
+                coach_type = self.find_coach_type(train, data['ct_letter'])
+                if coach_type is None:
+                    return self.handle_error(
+                        scan_id, data, 'Coach type {} not found'.format(data['ct_letter']))
+                coach_types = [coach_type]
             else:
                 coach_types = train.coach_types
 
-            with UZClient() as personal_client:
-                for ct in coach_types:
-                    for coach in await self.client.list_coaches(train, ct):
-                        try:
-                            seats = await self.client.list_seats(train, coach)
-                        except ResponseError:
-                            continue
-                        for seat in seats:
-                            try:
-                                await personal_client.book_seat(
-                                    train, coach, seat,
-                                    data['firstname'], data['lastname'])
-                            except ResponseError:
-                                continue
-                            sid = personal_client.get_session_id()
-                            await self.success_cb(data['success_cb_id'], sid)
-                            self.stop_scan(scan_id)
-                            return
-            error = 'No available seats'
-            data['error'] = error
-            logger.debug('[{}] {}'.format(scan_id, error))
-            await asyncio.sleep(self.timeout)
+            session_id = await self.book(train, coach_types, data['firstname'], data['lastname'])
+            if session_id is None:
+                return self.handle_error(scan_id, data, 'No available seats')
+
+            await self.success_cb(data['success_cb_id'], session_id)
+            self.stop_scan(scan_id)
 
 
 class UknkownScanID(Exception):

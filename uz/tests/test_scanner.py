@@ -23,8 +23,8 @@ class TestUZScannerLive(object):
 
         date = datetime.today() + timedelta(days=21)
 
-        scan = scanner.UZScanner(self.success_cb)
-        scan.run()
+        scan = scanner.UZScanner(self.success_cb, delay=1)
+        asyncio.ensure_future(scan.run())
         with client.UZClient() as uz:
             trains = await uz.list_trains(date, source_station, destination_station)
             train = trains[0]
@@ -36,8 +36,8 @@ class TestUZScannerLive(object):
             while self._running and (time.time() - start_time) < timeout:
                 await asyncio.sleep(1)
 
-            assert self._session_id
             assert self._cb_id == cb_id
+            assert self._session_id
 
     def success_cb(self, cb_id, session_id):
         self._cb_id = cb_id

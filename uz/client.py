@@ -113,6 +113,12 @@ class UZClient(object):
         result = await self.call('purchase/search/', data=data)
         return [Train.from_dict(i) for i in result['value']]
 
+    async def fetch_train(self, date, source_station, destination_station, train_num):
+        trains = await self.list_trains(date, source_station, destination_station)
+        for train in trains:
+            if train.num == train_num:
+                return train
+
     async def list_coaches(self, train, coach_type):
         data = dict(
             station_id_from=train.source_station.id,

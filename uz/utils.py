@@ -1,4 +1,6 @@
+import asyncio
 import re
+import time
 
 from uz.jjdecode import JJDecoder
 
@@ -15,3 +17,9 @@ def parse_gv_token(page):
     parsed = JJDecoder(jj_code).decode()
     token = TOKEN_PATTERN.search(parsed)
     return token and token.groups()[0]
+
+
+async def reliable_async_sleep(delay):
+    start = time.time()
+    while time.time() - start < delay:
+        await asyncio.sleep(5)

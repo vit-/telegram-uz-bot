@@ -10,7 +10,7 @@ from uz.metrics import statsd
 from uz.utils import reliable_async_sleep
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('uz.scanner')
 
 
 class UZScanner(object):

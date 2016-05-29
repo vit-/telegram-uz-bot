@@ -2,7 +2,7 @@ import logging
 from datadog.dogstatsd import DogStatsd
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('uz.metrics')
 
 
 class LoggingStatsd(DogStatsd):

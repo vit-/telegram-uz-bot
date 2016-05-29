@@ -11,7 +11,7 @@ from uz.client.model import DATE_FMT, Train, Station, Coach
 from uz.client.utils import parse_gv_token
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('uz.client')
 
 
 class UZClient(object):

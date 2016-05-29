@@ -24,7 +24,7 @@ async def list_trains(chat, match):
         try:
             date, source, destination = await Deserializer(uz).load(match.groupdict())
         except SerializerException as ex:
-            return await chat.send_text(ex.msg)
+            return await chat.send_text(str(ex))
 
         trains = await uz.list_trains(date, source, destination)
     msg = 'Trains from %s to %s on %s:\n\n' % (
@@ -62,7 +62,7 @@ async def scan(chat, match):
         try:
             date, source, destination = await Deserializer(uz).load(raw_data)
         except SerializerException as ex:
-            return await chat.send_text(ex.msg)
+            return await chat.send_text(str(ex))
 
     train_num = raw_data['train_num']
     ct_letter = raw_data['ct_letter']

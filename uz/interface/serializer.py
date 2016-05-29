@@ -23,7 +23,8 @@ class Deserializer(object):
         try:
             return date_parser.parse(date_str)
         except ValueError:
-            raise SerializerException('Unknown date format. Please use 2016-01-01')
+            raise SerializerException(
+                'Unknown date format: {}. Please use 2016-01-01'.format(date_str))
 
     async def station(self, name):
         if not name:

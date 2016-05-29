@@ -4,7 +4,8 @@ from uuid import uuid4
 
 import aiohttp
 
-from uz.client import UZClient, ResponseError
+from uz.client import UZClient
+from uz.client.exceptions import ResponseError
 from uz.metrics import statsd
 from uz.utils import reliable_async_sleep
 

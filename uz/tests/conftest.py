@@ -1,6 +1,6 @@
 import pytest
 
-from uz import model
+from uz.client import model
 from uz.tests import read_file
 
 

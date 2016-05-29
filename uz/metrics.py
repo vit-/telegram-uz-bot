@@ -13,7 +13,7 @@ class LoggingStatsd(DogStatsd):
 
     def _report(self, metric, metric_type, value, tags, sample_rate):
         logger.debug('[statsd] %s %s: %s', metric, metric_type, value)
-        super()._report(metric, metric_type, value, tags, sample_rate)
+        return super()._report(metric, metric_type, value, tags, sample_rate)
 
 
 statsd = LoggingStatsd()

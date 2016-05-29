@@ -1,4 +1,4 @@
-from uz.model import Train, CoachType, Coach, Station, UZTimestamp
+from uz.client.model import Train, CoachType, Coach, Station, UZTimestamp
 
 
 def assert_model(klass, dikt):

@@ -3,7 +3,7 @@ from datetime import datetime
 import mock
 import pytest
 
-from uz import client, model
+from uz.client import client, model
 from uz.tests import http_response, AIOMock
 
 

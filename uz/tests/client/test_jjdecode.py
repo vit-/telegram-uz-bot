@@ -1,6 +1,6 @@
 import pytest
 
-from uz.jjdecode import JJDecoder
+from uz.client.jjdecode import JJDecoder
 from uz.tests import read_file
 
 

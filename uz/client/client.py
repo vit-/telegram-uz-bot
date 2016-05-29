@@ -5,8 +5,10 @@ from itertools import chain
 
 import aiohttp
 
-from uz.model import DATE_FMT, Train, Station, Coach
-from uz.utils import parse_gv_token
+from uz.client.exceptions import (
+    FailedObtainToken, HTTPError, BadRequest, ResponseError, ImproperlyConfigured)
+from uz.client.model import DATE_FMT, Train, Station, Coach
+from uz.client.utils import parse_gv_token
 
 
 logger = logging.getLogger(__name__)
@@ -171,35 +173,3 @@ class UZClient(object):
             data['places[0][{}]'.format(key)] = value
         result = await self.call('cart/add/', data=data)
         return result
-
-
-class UZException(Exception):
-    pass
-
-
-class FailedObtainToken(UZException):
-    pass
-
-
-class HTTPError(UZException):
-
-    def __init__(self, status_code, body, data=None, json=None):
-        self.status_code = status_code
-        self.body = body
-        self.data = data
-        self.json = json
-        super().__init__(
-            'status code: {}, request data: {}, response body: {}'.format(
-                status_code, data, body))
-
-
-class BadRequest(HTTPError):
-    pass
-
-
-class ResponseError(HTTPError):
-    pass
-
-
-class ImproperlyConfigured(UZException):
-    pass

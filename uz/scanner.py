@@ -74,9 +74,11 @@ class UZScanner(object):
             raise UknkownScanID(scan_id)
         return data['attempts'], data['error']
 
-    def stop_scan(self, scan_id):
+    def abort(self, scan_id):
         if scan_id in self.__state:
             del self.__state[scan_id]
+            return True
+        raise UknkownScanID(scan_id)
 
     @staticmethod
     def handle_error(scan_id, data, error):
@@ -132,7 +134,7 @@ class UZScanner(object):
                 return self.handle_error(scan_id, data, 'No available seats')
 
             await self.success_cb(data['success_cb_id'], session_id)
-            self.stop_scan(scan_id)
+            self.abort(scan_id)
 
 
 class UknkownScanID(Exception):

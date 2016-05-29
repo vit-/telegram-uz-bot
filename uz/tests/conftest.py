@@ -33,6 +33,11 @@ def station_raw():
 
 
 @pytest.fixture
+def another_station_raw():
+    return {'station_id': 2200001, 'title': 'Kyiv'}
+
+
+@pytest.fixture
 def coach_type_raw():
     return {
         'letter': 'С1',

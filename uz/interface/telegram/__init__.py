@@ -1,7 +1,7 @@
 import os
 
 from uz.client import UZClient
-from uz.interface.serializer import Deserializer
+from uz.interface.serializer import Deserializer, SerializerException
 from uz.interface.telegram import bot
 from uz.scanner import UknkownScanID
 
@@ -21,8 +21,10 @@ else:
 @tg_bot.command(r'/trains (?P<date>[\w.\-]+) (?P<source>\w+) (?P<destination>\w+)')
 async def list_trains(chat, match):
     with UZClient() as uz:
-        date, source, destination = await Deserializer(uz).load(
-            match.groupdict())
+        try:
+            date, source, destination = await Deserializer(uz).load(match.groupdict())
+        except SerializerException as ex:
+            return await chat.send_text(ex.msg)
 
         trains = await uz.list_trains(date, source, destination)
     msg = 'Trains from %s to %s on %s:\n\n' % (
@@ -43,23 +45,30 @@ async def status(chat, match):
     return await chat.send_text(msg)
 
 
-@tg_bot.command(r'/stop_scan (?P<scan_id>.+)')
-async def stop_scan(chat, match):
+@tg_bot.command(r'/abort (?P<scan_id>.+)')
+async def abort_scan(chat, match):
     scan_id = match.groupdict()['scan_id']
-    return chat.bot.scanner.stop_scan(scan_id)
+    try:
+        chat.bot.scanner.abort(scan_id)
+    except UknkownScanID:
+        return await chat.send_text('Unknown scan id: {}'.format(scan_id))
+    return await chat.send_text('OK')
 
 
 @tg_bot.command(r'/scan (?P<date>[\w.\-]+) (?P<source>\w+) (?P<destination>\w+) (?P<train_num>\w+)( (?P<ct_letter>\w+))?')  # noqa
 async def scan(chat, match):
+    raw_data = match.groupdict()
     with UZClient() as uz:
-        raw_data = match.groupdict()
-        date, source, destination = await Deserializer(uz).load(raw_data)
-        train_num = raw_data['train_num']
-        ct_letter = raw_data['ct_letter']
+        try:
+            date, source, destination = await Deserializer(uz).load(raw_data)
+        except SerializerException as ex:
+            return await chat.send_text(ex.msg)
+
+    train_num = raw_data['train_num']
+    ct_letter = raw_data['ct_letter']
 
     scan_id = await chat.bot.scanner.add_item(
-        chat.message, 'Firstname', 'Lastname', date, source, destination,
-        train_num, ct_letter)
+        chat.message, 'Firstname', 'Lastname', date, source, destination, train_num, ct_letter)
     msg = ('Scanning tickets for train {} from {} to {} on {}.\n'
            'To monitor scan status use command:\n'
            '/status {}').format(

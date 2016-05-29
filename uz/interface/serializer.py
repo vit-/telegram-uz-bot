@@ -11,9 +11,9 @@ class Deserializer(object):
         self.client = client
 
     async def load(self, dikt):
-        date = self.date(dikt['date'])
-        source_coro = self.station(dikt['source'])
-        destination_coro = self.station(dikt['destination'])
+        date = self.date(dikt.get('date'))
+        source_coro = self.station(dikt.get('source'))
+        destination_coro = self.station(dikt.get('destination'))
         return date, await source_coro, await destination_coro
 
     @staticmethod
@@ -22,10 +22,13 @@ class Deserializer(object):
             return
         try:
             return date_parser.parse(date_str)
-        except ValueError as ex:
-            raise SerializerException(ex)
+        except ValueError:
+            raise SerializerException('Unknown date format. Please use 2016-01-01')
 
     async def station(self, name):
         if not name:
             return
-        return await self.client.fetch_first_station(name)
+        station = await self.client.fetch_first_station(name)
+        if station is None:
+            raise SerializerException('Station {} not found'.format(name))
+        return station

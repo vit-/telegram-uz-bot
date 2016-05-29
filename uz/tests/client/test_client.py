@@ -4,7 +4,7 @@ import mock
 import pytest
 
 from uz.client import client, model
-from uz.tests import http_response, AIOMock
+from uz.tests import http_response, get_uz_client
 
 
 class TestUZClient(object):
@@ -20,16 +20,6 @@ class TestUZClient(object):
 
     def uri(self, endpoint):
         return '{}/{}'.format(self.base_url, endpoint)
-
-    @staticmethod
-    def get_client(response_mock=None):
-        session = AIOMock()
-        if response_mock:
-            session.request.return_value = response_mock
-        uz = client.UZClient(session)
-        # _is_token_outdated == False
-        uz._token_date = 9999999999
-        return uz
 
     def assert_request_call(self, uz, endpoint, **kw):
         uz.session.request.assert_called_once_with(
@@ -47,7 +37,7 @@ class TestUZClient(object):
     async def test_get_token(self, index_page):
         expected = '33107f87dadad37307f93da538b73138'
 
-        uz = self.get_client(http_response(index_page))
+        uz = get_uz_client(http_response(index_page))
         uz._token_date = 0  # reset mocked value from previous call
 
         result = await uz.get_token()
@@ -60,7 +50,7 @@ class TestUZClient(object):
 
     @pytest.mark.asyncio
     async def test_get_token_fail(self):
-        uz = self.get_client(http_response(''))
+        uz = get_uz_client(http_response(''))
         uz._token_date = 0  # reset mocked value from previous call
 
         with pytest.raises(client.FailedObtainToken):
@@ -74,7 +64,7 @@ class TestUZClient(object):
     async def test_call_raise(self, status, body, ex):
         endpoint = 'i/am/endpoint'
 
-        uz = self.get_client(http_response(body, status))
+        uz = get_uz_client(http_response(body, status))
         with pytest.raises(ex):
             await uz.call(endpoint)
 
@@ -88,7 +78,7 @@ class TestUZClient(object):
         expected = str(body).encode('utf-8') if is_raw else body
         endpoint = 'i/am/endpoint/ok'
 
-        uz = self.get_client(http_response(body))
+        uz = get_uz_client(http_response(body))
         result = await uz.call(endpoint, method='GET', raw=is_raw)
 
         assert result == expected
@@ -102,7 +92,7 @@ class TestUZClient(object):
         response = {'value': [station_raw, station_raw]}
         expected = [model.Station.from_dict(station_raw) for _ in range(2)]
 
-        uz = self.get_client(http_response(response))
+        uz = get_uz_client(http_response(response))
         result = await uz.search_stations(name)
 
         assert result == expected
@@ -121,7 +111,7 @@ class TestUZClient(object):
             response = {'value': []}
             expected = None
 
-        uz = self.get_client(http_response(response))
+        uz = get_uz_client(http_response(response))
         result = await uz.fetch_first_station(name)
 
         assert result == expected
@@ -142,11 +132,26 @@ class TestUZClient(object):
         response = {'value': [train_raw, train_raw]}
         expected = [model.Train.from_dict(train_raw) for _ in range(2)]
 
-        uz = self.get_client(http_response(response))
+        uz = get_uz_client(http_response(response))
         result = await uz.list_trains(date, source_station, destination_station)
 
         assert result == expected
         self.assert_request_call(uz, 'purchase/search/', data=data)
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize('train_num,is_found', [
+        ('741К', True),
+        ('X3', False)])
+    async def test_fetch_train(self, train_num, is_found, train_raw, source_station,
+                               destination_station):
+        date = datetime(2016, 7, 1)
+        response = {'value': [train_raw]}
+        expected = model.Train.from_dict(train_raw) if is_found else None
+
+        uz = get_uz_client(http_response(response))
+        result = await uz.fetch_train(date, source_station, destination_station, train_num)
+
+        assert result == expected
 
     @pytest.mark.asyncio
     async def test_list_coaches(self, train, coach_type, coach_raw):
@@ -163,7 +168,7 @@ class TestUZClient(object):
         response = {'value': {'coaches': [coach_raw, coach_raw]}}
         expected = [model.Coach.from_dict(coach_raw) for _ in range(2)]
 
-        uz = self.get_client(http_response(response))
+        uz = get_uz_client(http_response(response))
         result = await uz.list_coaches(train, coach_type)
 
         assert result == expected
@@ -183,7 +188,7 @@ class TestUZClient(object):
         response = {'value': seats_raw}
         expected = {'6', '9', '10', '14', '16', '18'}
 
-        uz = self.get_client(http_response(response))
+        uz = get_uz_client(http_response(response))
         result = await uz.list_seats(train, coach)
 
         assert result == expected
@@ -218,7 +223,7 @@ class TestUZClient(object):
 
         expected = response = {'error': False}
 
-        uz = self.get_client(http_response(response))
+        uz = get_uz_client(http_response(response))
         result = await uz.book_seat(train, coach, seat, firstname, lastname)
 
         assert result == expected

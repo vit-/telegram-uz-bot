@@ -1,7 +1,9 @@
 import pytest
 
-from uz.client import model
 from uz.tests import read_file
+
+from uz.client import model
+from uz import utils
 
 
 @pytest.fixture
@@ -90,7 +92,8 @@ def coach_type():
 def train():
     return model.Train(
         0, 0, '091К', '7:25',
-        [model.CoachType('Л', 18, 'Suite / first-class sleeper')],
+        [model.CoachType('Л', 18, 'Suite / first-class sleeper'),
+         model.CoachType('К', 51, 'Coupe / coach with compartments')],
         model.Station('2200001', 'Kyiv-Pasazhyrsky'),
         model.Station('2218000', 'Lviv'),
         model.UZTimestamp(1466451660, '2016-06-20 22:41:00'),
@@ -105,3 +108,11 @@ def coach():
 @pytest.fixture
 def index_page():
     return read_file('fixtures/index.html')
+
+
+@pytest.yield_fixture
+def patch_sleep_resolution():
+    orig = utils.RESOLUTION
+    utils.RESOLUTION = 0.1
+    yield
+    utils.RESOLUTION = orig

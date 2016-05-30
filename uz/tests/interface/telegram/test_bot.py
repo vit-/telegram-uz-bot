@@ -6,7 +6,7 @@ import pytest
 
 from uz.tests import Awaitable
 
-from uz.interface.telegram import tg_bot
+from uz.interface.telegram import bot
 from uz.scanner import UknkownScanID
 
 
@@ -32,7 +32,7 @@ def get_reply(send_message_mock):
 
 @pytest.mark.asyncio
 async def test_list_trains(source_station, destination_station, train):
-    tg_bot.send_message = send_message = mock.MagicMock(return_value=Awaitable())
+    bot.send_message = send_message = mock.MagicMock(return_value=Awaitable())
     date = datetime(2016, 7, 21)
     command = '/trains {} {} {}'.format(
         date.strftime('%Y-%m-%d'), source_station.title, destination_station.title)
@@ -40,7 +40,7 @@ async def test_list_trains(source_station, destination_station, train):
                     return_value=Awaitable((date, source_station, destination_station))) as load, \
             mock.patch('uz.client.client.UZClient.list_trains',
                        return_value=Awaitable([train])) as list_trains:
-        await tg_bot._process_message(tg_message(command))
+        await bot._process_message(tg_message(command))
     load.assert_called_once_with({
         'date': date.strftime('%Y-%m-%d'),
         'source': source_station.title,
@@ -62,9 +62,9 @@ async def test_status(is_ok):
         scanner.status.return_value = (attempts, error) = (10, 'i am error')
     else:
         scanner.status.side_effect = UknkownScanID()
-    tg_bot.send_message = send_message = mock.MagicMock(return_value=Awaitable())
-    tg_bot.set_scanner(scanner)
-    await tg_bot._process_message(tg_message('/status {}'.format(scan_id)))
+    bot.send_message = send_message = mock.MagicMock(return_value=Awaitable())
+    bot.set_scanner(scanner)
+    await bot._process_message(tg_message('/status {}'.format(scan_id)))
     scanner.status.assert_called_once_with(scan_id)
     if is_ok:
         send_message.assert_called_once_with(
@@ -83,9 +83,9 @@ async def test_abort_scan(is_ok):
         scanner.abort.return_value = True
     else:
         scanner.abort.side_effect = UknkownScanID()
-    tg_bot.send_message = send_message = mock.MagicMock(return_value=Awaitable())
-    tg_bot.set_scanner(scanner)
-    await tg_bot._process_message(tg_message('/abort {}'.format(scan_id)))
+    bot.send_message = send_message = mock.MagicMock(return_value=Awaitable())
+    bot.set_scanner(scanner)
+    await bot._process_message(tg_message('/abort {}'.format(scan_id)))
     scanner.abort.assert_called_once_with(scan_id)
     if is_ok:
         send_message.assert_called_once_with(
@@ -117,12 +117,12 @@ async def test_scan(source_station, destination_station, ct_letter):
 
     scanner = mock.MagicMock()
     scanner.add_item.return_value = Awaitable(scan_id)
-    tg_bot.send_message = send_message = mock.MagicMock(return_value=Awaitable())
-    tg_bot.set_scanner(scanner)
+    bot.send_message = send_message = mock.MagicMock(return_value=Awaitable())
+    bot.set_scanner(scanner)
 
     with mock.patch('uz.interface.serializer.Deserializer.load',
                     return_value=Awaitable((date, source_station, destination_station))) as load:
-        await tg_bot._process_message(tg_message(command))
+        await bot._process_message(tg_message(command))
     load.assert_called_once_with({
         'firstname': firstname,
         'lastname': lastname,
@@ -143,14 +143,14 @@ async def test_scan(source_station, destination_station, ct_letter):
 
 @pytest.mark.asyncio
 async def test_hello():
-    tg_bot.send_message = send_message = mock.MagicMock(return_value=Awaitable())
-    await tg_bot._process_message(tg_message('hi'))
+    bot.send_message = send_message = mock.MagicMock(return_value=Awaitable())
+    await bot._process_message(tg_message('hi'))
     send_message.assert_called_once_with(
         CHAT_ID, 'Hello! I am UZ Tickets Bot! Use /help to see what I can')
 
 
 @pytest.mark.asyncio
 async def test_help_msg():
-    tg_bot.send_message = send_message = mock.MagicMock(return_value=Awaitable())
-    await tg_bot._process_message(tg_message('/help'))
+    bot.send_message = send_message = mock.MagicMock(return_value=Awaitable())
+    await bot._process_message(tg_message('/help'))
     send_message.assert_called_once_with(CHAT_ID, 'Help is on it\'s way!')

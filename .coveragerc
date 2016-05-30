@@ -1,0 +1,5 @@
+[run]
+omit =
+    uz/tests/*
+    uz/client/jjdecode.py
+    uz/interface/telegram/dev_bot.py

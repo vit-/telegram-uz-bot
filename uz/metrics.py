@@ -1,3 +1,4 @@
+import functools
 import logging
 from datadog.dogstatsd import DogStatsd
 
@@ -17,3 +18,13 @@ class LoggingStatsd(DogStatsd):
 
 
 statsd = LoggingStatsd()
+
+
+def count_hits(name):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            statsd.increment(name)
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator

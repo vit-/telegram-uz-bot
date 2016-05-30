@@ -3,6 +3,7 @@ import os
 from uz.client import UZClient
 from uz.interface.serializer import Deserializer, SerializerException
 from uz.interface.telegram import bot
+from uz.metrics import count_hits
 from uz.scanner import UknkownScanID
 
 
@@ -19,6 +20,7 @@ else:
 
 
 @tg_bot.command(r'/trains (?P<date>[\w.\-]+) (?P<source>\w+) (?P<destination>\w+)')
+@count_hits('interface.telegram.command.trains')
 async def list_trains(chat, match):
     with UZClient() as uz:
         try:
@@ -35,6 +37,7 @@ async def list_trains(chat, match):
 
 
 @tg_bot.command(r'/status (?P<scan_id>.+)')
+@count_hits('interface.telegram.command.status')
 async def status(chat, match):
     scan_id = match.groupdict()['scan_id']
     try:
@@ -46,6 +49,7 @@ async def status(chat, match):
 
 
 @tg_bot.command(r'/abort (?P<scan_id>.+)')
+@count_hits('interface.telegram.command.abort_scan')
 async def abort_scan(chat, match):
     scan_id = match.groupdict()['scan_id']
     try:
@@ -56,6 +60,7 @@ async def abort_scan(chat, match):
 
 
 @tg_bot.command(r'/scan (?P<date>[\w.\-]+) (?P<source>\w+) (?P<destination>\w+) (?P<train_num>\w+)( (?P<ct_letter>\w+))?')  # noqa
+@count_hits('interface.telegram.command.scan')
 async def scan(chat, match):
     raw_data = match.groupdict()
     with UZClient() as uz:
@@ -77,11 +82,13 @@ async def scan(chat, match):
 
 
 @tg_bot.command(r'/help')
+@count_hits('interface.telegram.command.help')
 async def help_msg(chat, match):
     return await chat.send_text('Help is on it\'s way!')
 
 
 @tg_bot.default
+@count_hits('interface.telegram.command.hello')
 async def hello(chat, message):
     if message.get('text'):
         return await chat.send_text('Hello! I am UZ Tickets Bot! Use /help to see what I can')

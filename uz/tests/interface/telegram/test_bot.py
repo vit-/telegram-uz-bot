@@ -101,10 +101,19 @@ async def test_scan(source_station, destination_station, ct_letter):
     scan_id = 'id1234'
     date = datetime(2016, 10, 7)
     train_num = '744K'
-    command = '/scan {} {} {} {}'.format(
-        date.strftime('%Y-%m-%d'), source_station, destination_station, train_num)
+    firstname = 'username'
+    lastname = 'surname'
+    parts = [
+        '/scan',
+        firstname,
+        lastname,
+        date.strftime('%Y-%m-%d'),
+        source_station,
+        destination_station,
+        train_num]
     if ct_letter:
-        command += ' {}'.format(ct_letter)
+        parts.append(ct_letter)
+    command = ' '.join(str(i) for i in parts)
 
     scanner = mock.MagicMock()
     scanner.add_item.return_value = Awaitable(scan_id)
@@ -115,13 +124,15 @@ async def test_scan(source_station, destination_station, ct_letter):
                     return_value=Awaitable((date, source_station, destination_station))) as load:
         await tg_bot._process_message(tg_message(command))
     load.assert_called_once_with({
+        'firstname': firstname,
+        'lastname': lastname,
         'date': date.strftime('%Y-%m-%d'),
         'source': source_station.title,
         'destination': destination_station.title,
         'train_num': train_num,
         'ct_letter': ct_letter})
     scanner.add_item.assert_called_once_with(
-        mock.ANY, 'Firstname', 'Lastname', date, source_station, destination_station,
+        mock.ANY, firstname, lastname, date, source_station, destination_station,
         train_num, ct_letter)
     expected = ('Scanning tickets for train {} from {} to {} on {}.\n'
                 'To monitor scan status use command:\n'

@@ -59,7 +59,7 @@ async def abort_scan(chat, match):
     return await chat.send_text('OK')
 
 
-@tg_bot.command(r'/scan (?P<date>[\w.\-]+) (?P<source>\w+) (?P<destination>\w+) (?P<train_num>\w+)( (?P<ct_letter>\w+))?')  # noqa
+@tg_bot.command(r'/scan (?P<firstname>\w+) (?P<lastname>\w+) (?P<date>[\w.\-]+) (?P<source>\w+) (?P<destination>\w+) (?P<train_num>\w+)( (?P<ct_letter>\w+))?')  # noqa
 @count_hits('interface.telegram.command.scan')
 async def scan(chat, match):
     raw_data = match.groupdict()
@@ -71,9 +71,11 @@ async def scan(chat, match):
 
     train_num = raw_data['train_num']
     ct_letter = raw_data['ct_letter']
+    firstname = raw_data['firstname']
+    lastname = raw_data['lastname']
 
     scan_id = await chat.bot.scanner.add_item(
-        chat.message, 'Firstname', 'Lastname', date, source, destination, train_num, ct_letter)
+        chat.message, firstname, lastname, date, source, destination, train_num, ct_letter)
     msg = ('Scanning tickets for train {} from {} to {} on {}.\n'
            'To monitor scan status use command:\n'
            '/status {}').format(

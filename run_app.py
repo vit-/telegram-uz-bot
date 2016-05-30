@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 
-from uz.interface.telegram import tg_bot
+from uz.interface.telegram import bot
 from uz.metrics import statsd
 from uz.scanner import UZScanner
 
@@ -49,16 +49,16 @@ if __name__ == '__main__':
     configure_logging()
     init_statsd()
 
-    scanner = UZScanner(tg_bot.ticket_booked_cb, SCAN_DALAY_SEC)
-    tg_bot.set_scanner(scanner)
+    scanner = UZScanner(bot.ticket_booked_cb, SCAN_DALAY_SEC)
+    bot.set_scanner(scanner)
     loop = asyncio.get_event_loop()
-    loop.create_task(tg_bot.loop())
+    loop.create_task(bot.loop())
     loop.create_task(scanner.run())
     logger.warning('Running...')
     try:
         loop.run_forever()
     except KeyboardInterrupt:
-        tg_bot.stop()
+        bot.stop()
         scanner.stop()
         logger.warning('Shutting down...')
         logger.warning('Waiting for all tasks to complete...')

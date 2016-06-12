@@ -37,7 +37,7 @@ async def list_trains(chat, match):
     return await chat.send_text(msg)
 
 
-@bot.command(r'/status (?P<scan_id>.+)')
+@bot.command(r'/status_(?P<scan_id>.+)')
 @count_hits('interface.telegram.command.status')
 async def status(chat, match):
     scan_id = match.groupdict()['scan_id']
@@ -49,7 +49,7 @@ async def status(chat, match):
     return await chat.send_text(msg)
 
 
-@bot.command(r'/abort (?P<scan_id>.+)')
+@bot.command(r'/abort_(?P<scan_id>.+)')
 @count_hits('interface.telegram.command.abort_scan')
 async def abort_scan(chat, match):
     scan_id = match.groupdict()['scan_id']
@@ -77,21 +77,39 @@ async def scan(chat, match):
 
     scan_id = await chat.bot.scanner.add_item(
         chat.message, firstname, lastname, date, source, destination, train_num, ct_letter)
-    msg = ('Scanning tickets for train {} from {} to {} on {}.\n'
-           'To monitor scan status use command:\n'
-           '/status {}').format(
-        train_num, source, destination, date.date(), scan_id)
+    msg = ('Scanning tickets for train {train} from {src} to {dst} on {date}.\n'
+           'To monitor scan status: /status_{sid}\n'
+           'To abort scan: /abort_{sid}').format(
+        train=train_num,
+        src=source,
+        dst=destination,
+        date=date.date(),
+        sid=scan_id)
     return await chat.send_text(msg)
 
 
 @bot.command(r'/help')
 @count_hits('interface.telegram.command.help')
 async def help_msg(chat, match):
-    return await chat.send_text('Help is on it\'s way!')
+    return await chat.send_text(
+        'Use /trains to list available trains for a specific date and route. '
+        'For example:\n'
+        '/trains 2016-01-01 Kyiv Lviv\n\n'
+        'Use /scan to initiate tickets monitoring. For example:\n'
+        '/scan Firstname Lastname 2016-01-01 Kyiv Lviv 743K\n'
+        'You can optionally provide a coach type you prefer:\n'
+        '/scan Firstname Lastname 2016-01-01 Kyiv Lviv 743K C2\n\n'
+        'Once the ticket is booked you need to proceed to checkout in your browser '
+        'using a provided Session ID.'
+    )
 
 
 @bot.default
 @count_hits('interface.telegram.command.hello')
 async def hello(chat, message):
     if message.get('text'):
-        return await chat.send_text('Hello! I am UZ Tickets Bot! Use /help to see what I can')
+        return await chat.send_text(
+            'Hello! I am UZ Tickets Bot!\n'
+            'I am here to help you in buying UZ railway tickets on a highly loaded trains.\n'
+            'Type /help to get a list of commands.'
+        )

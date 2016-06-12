@@ -64,7 +64,7 @@ async def test_status(is_ok):
         scanner.status.side_effect = UknkownScanID()
     bot.send_message = send_message = mock.MagicMock(return_value=Awaitable())
     bot.set_scanner(scanner)
-    await bot._process_message(tg_message('/status {}'.format(scan_id)))
+    await bot._process_message(tg_message('/status_{}'.format(scan_id)))
     scanner.status.assert_called_once_with(scan_id)
     if is_ok:
         send_message.assert_called_once_with(
@@ -85,7 +85,7 @@ async def test_abort_scan(is_ok):
         scanner.abort.side_effect = UknkownScanID()
     bot.send_message = send_message = mock.MagicMock(return_value=Awaitable())
     bot.set_scanner(scanner)
-    await bot._process_message(tg_message('/abort {}'.format(scan_id)))
+    await bot._process_message(tg_message('/abort_{}'.format(scan_id)))
     scanner.abort.assert_called_once_with(scan_id)
     if is_ok:
         send_message.assert_called_once_with(
@@ -134,10 +134,14 @@ async def test_scan(source_station, destination_station, ct_letter):
     scanner.add_item.assert_called_once_with(
         mock.ANY, firstname, lastname, date, source_station, destination_station,
         train_num, ct_letter)
-    expected = ('Scanning tickets for train {} from {} to {} on {}.\n'
-                'To monitor scan status use command:\n'
-                '/status {}').format(
-        train_num, source_station, destination_station, date.date(), scan_id)
+    expected = ('Scanning tickets for train {train} from {src} to {dst} on {date}.\n'
+                'To monitor scan status: /status_{sid}\n'
+                'To abort scan: /abort_{sid}').format(
+        train=train_num,
+        src=source_station,
+        dst=destination_station,
+        date=date.date(),
+        sid=scan_id)
     send_message.assert_called_once_with(CHAT_ID, expected)
 
 
@@ -145,12 +149,11 @@ async def test_scan(source_station, destination_station, ct_letter):
 async def test_hello():
     bot.send_message = send_message = mock.MagicMock(return_value=Awaitable())
     await bot._process_message(tg_message('hi'))
-    send_message.assert_called_once_with(
-        CHAT_ID, 'Hello! I am UZ Tickets Bot! Use /help to see what I can')
+    send_message.assert_called_once_with(CHAT_ID, mock.ANY)
 
 
 @pytest.mark.asyncio
 async def test_help_msg():
     bot.send_message = send_message = mock.MagicMock(return_value=Awaitable())
     await bot._process_message(tg_message('/help'))
-    send_message.assert_called_once_with(CHAT_ID, 'Help is on it\'s way!')
+    send_message.assert_called_once_with(CHAT_ID, mock.ANY)

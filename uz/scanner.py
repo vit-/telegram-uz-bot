@@ -28,6 +28,7 @@ class UZScanner(object):
         self.__running = False
 
     async def run(self):
+        logger.info('Starting UZScanner')
         self.__running = True
         asyncio.ensure_future(self.emit_stats())
         while self.__running:
@@ -36,6 +37,7 @@ class UZScanner(object):
             await reliable_async_sleep(self.delay)
 
     def stop(self):
+        logger.info('Stopping UZScanner')
         self.__running = False
 
     def cleanup(self):
@@ -49,9 +51,6 @@ class UZScanner(object):
 
     async def add_item(self, success_cb_id, firstname, lastname, date,
                        source, destination, train_num, ct_letter=None):
-        if not self.__running:
-            logger.warning('Adding item to not running scanner')
-
         scan_id = uuid4().hex
         self.__state[scan_id] = dict(
             success_cb_id=success_cb_id,

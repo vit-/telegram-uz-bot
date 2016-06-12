@@ -165,7 +165,7 @@ class TestUZClient(object):
             another_ec=0,
             coach_type=coach_type.letter
         )
-        response = {'value': {'coaches': [coach_raw, coach_raw]}}
+        response = {'coaches': [coach_raw, coach_raw]}
         expected = [model.Coach.from_dict(coach_raw) for _ in range(2)]
 
         uz = get_uz_client(http_response(response))

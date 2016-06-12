@@ -66,5 +66,6 @@ target/
 *.sublime-workspace
 
 tokens.txt
+debug.py
 
 .idea/

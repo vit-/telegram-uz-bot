@@ -53,7 +53,7 @@ def coach_raw():
         'allow_bonus': False,
         'coach_class': '2',
         'coach_type_id': 21,
-        'hasBedding': False,
+        'has_bedding': False,
         'num': 3,
         'places_cnt': 54,
         'prices': {'А': 31021},

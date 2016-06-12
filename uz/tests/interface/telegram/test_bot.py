@@ -116,7 +116,7 @@ async def test_scan(source_station, destination_station, ct_letter):
     command = ' '.join(str(i) for i in parts)
 
     scanner = mock.MagicMock()
-    scanner.add_item.return_value = Awaitable(scan_id)
+    scanner.add_item.return_value = scan_id
     bot.send_message = send_message = mock.MagicMock(return_value=Awaitable())
     bot.set_scanner(scanner)
 

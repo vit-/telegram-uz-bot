@@ -133,7 +133,7 @@ class UZClient(object):
             coach_type=coach_type.letter
         )
         result = await self.call('purchase/coaches/', data=data)
-        return [Coach.from_dict(i) for i in result['value']['coaches']]
+        return [Coach.from_dict(i) for i in result['coaches']]
 
     async def list_seats(self, train, coach):
         data = dict(

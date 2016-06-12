@@ -75,7 +75,7 @@ async def scan(chat, match):
     firstname = raw_data['firstname']
     lastname = raw_data['lastname']
 
-    scan_id = await chat.bot.scanner.add_item(
+    scan_id = chat.bot.scanner.add_item(
         chat.message, firstname, lastname, date, source, destination, train_num, ct_letter)
     msg = ('Scanning tickets for train {train} from {src} to {dst} on {date}.\n'
            'To monitor scan status: /status_{sid}\n'

@@ -34,7 +34,7 @@ class TestUZScannerLive(object):
             ct_letter = train.coach_types[-1].letter
 
             start_time = time.time()
-            await scan.add_item(
+            scan.add_item(
                 cb_id, 'firstname', 'lastname', date, source_station, destination_station,
                 train.num, ct_letter)
             while self._running and (time.time() - start_time) < timeout:
@@ -63,7 +63,7 @@ async def test_run_stop(patch_sleep_resolution, source_station, destination_stat
     date = datetime(2016, 1, 1)
     train_num = '741K'
     ct_letter = 'C1'
-    scan_id = await instance.add_item(
+    scan_id = instance.add_item(
         success_cb_id, firstname, lastname, date, source_station, destination_station,
         train_num, ct_letter)
 
@@ -111,7 +111,7 @@ async def test_scan(train_found, ct_letter, ct_found, booked, train,
 
     asyncio.ensure_future(instance.run())
 
-    scan_id = await instance.add_item(
+    scan_id = instance.add_item(
         success_cb_id, firstname, lastname, date, source_station, destination_station,
         train_num, ct_letter)
     await asyncio.sleep(0.01)

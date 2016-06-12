@@ -49,8 +49,8 @@ class UZScanner(object):
             statsd.gauge('scanner.active_scans', cnt)
             await asyncio.sleep(self.metric_sample_rate)
 
-    async def add_item(self, success_cb_id, firstname, lastname, date,
-                       source, destination, train_num, ct_letter=None):
+    def add_item(self, success_cb_id, firstname, lastname, date,
+                 source, destination, train_num, ct_letter=None):
         scan_id = uuid4().hex
         self.__state[scan_id] = dict(
             success_cb_id=success_cb_id,

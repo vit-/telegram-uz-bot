@@ -7,3 +7,7 @@ Telegram Bot for booking UZ railway tickets
 # Purpose
 Sometimes it's hard to book a ticket on a busy train.
 This bot automates available tickets monitoring and books a ticket once it's possible.
+
+# Update session ID bookmarklet:
+Just open [the page](http://vit-.github.io/telegram-uz-bot/bookmarklet.html) and add link (on the opened page) as bookmark or drag&drop to bookmark bar. 
+After that you'll just need to click on it on the UZ page to enter Session ID and update it on the site automatically.

@@ -13,6 +13,7 @@ class TestUZClient(object):
 
     def get_headers(self):
         return {
+            'User-Agent': 'user_agent',
             'GV-Ajax': '1',
             'GV-Referer': self.base_url,
             'GV-Token': None
@@ -46,7 +47,9 @@ class TestUZClient(object):
         assert uz._token == expected
         assert uz._token_date
 
-        uz.session.request.assert_called_once_with('POST', self.uri(''), headers=None)
+        uz.session.cookies.clear.assert_called_once_with()
+        uz.session.request.assert_called_once_with(
+            'POST', self.uri(''), headers={'User-Agent': 'user_agent'})
 
     @pytest.mark.asyncio
     async def test_get_token_fail(self):

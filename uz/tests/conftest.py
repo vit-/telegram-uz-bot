@@ -2,8 +2,15 @@ import pytest
 
 from uz.tests import read_file
 
-from uz.client import model
 from uz import utils
+from uz.client import model, utils as client_utils
+
+
+@pytest.fixture(autouse=True)
+def user_agent():
+    ua = 'user_agent'
+    client_utils.USER_AGENTS = [ua]
+    return ua
 
 
 @pytest.fixture

@@ -8,7 +8,7 @@ import aiohttp
 from uz.client.exceptions import (
     FailedObtainToken, HTTPError, BadRequest, ResponseError, ImproperlyConfigured)
 from uz.client.model import DATE_FMT, Train, Station, Coach
-from uz.client.utils import parse_gv_token
+from uz.client.utils import parse_gv_token, get_random_user_agent
 
 
 logger = logging.getLogger('uz.client')
@@ -26,6 +26,7 @@ class UZClient(object):
         self._token = None
         self._token_date = 0
         self._token_max_age = 600  # 10 minutes
+        self._user_agent = None
 
     def __enter__(self):
         self._session = aiohttp.ClientSession()
@@ -40,6 +41,12 @@ class UZClient(object):
             raise ImproperlyConfigured('Session is not configured')
         return self._session
 
+    @property
+    def user_agent(self):
+        if self._user_agent is None:
+            self._user_agent = get_random_user_agent()
+        return self._user_agent
+
     def _is_token_outdated(self):
         return (time.time() - self._token_date) > self._token_max_age
 
@@ -47,7 +54,10 @@ class UZClient(object):
         if self._is_token_outdated():
             async with self._token_lock:
                 if self._is_token_outdated():
-                    page = await self.call('', raw=True, headers=None)
+                    self._user_agent = None
+                    self.session.cookies.clear()
+                    headers = {'User-Agent': self.user_agent}
+                    page = await self.call('', raw=True, headers=headers)
                     page = page.decode('utf-8')
                     self._token = parse_gv_token(page)
                     if self._token is None:
@@ -57,6 +67,7 @@ class UZClient(object):
 
     async def get_headers(self):
         return {
+            'User-Agent': self.user_agent,
             'GV-Ajax': '1',
             'GV-Referer': self.base_url,
             'GV-Token': await self.get_token()
@@ -74,7 +85,9 @@ class UZClient(object):
             kwargs['headers'] = await self.get_headers()
 
         uri = self.uri(endpoint)
-        logger.debug('Fetching: {}'.format(uri))
+        logger.debug('Fetching: %s', uri)
+        logger.debug('Headers: %s', kwargs['headers'])
+        logger.debug('Cookies: %s', self.session.cookies)
 
         with aiohttp.Timeout(self.request_timeout):
             async with self.session.request(

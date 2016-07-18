@@ -11,7 +11,7 @@ from uz.tests import AIOMock, Awaitable
 from uz import scanner, client
 
 
-@flaky
+@flaky(max_runs=5)
 class TestUZScannerLive(object):
 
     @pytest.mark.live

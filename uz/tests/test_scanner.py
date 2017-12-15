@@ -11,7 +11,7 @@ from uz.tests import AIOMock, Awaitable
 from uz import scanner, client
 
 
-@flaky(max_runs=5)
+# @flaky(max_runs=5)
 class TestUZScannerLive(object):
 
     @pytest.mark.live
@@ -22,9 +22,9 @@ class TestUZScannerLive(object):
         self._running = True
 
         cb_id = 'callback id'
-        timeout = 20
+        timeout = 10
 
-        date = datetime.today() + timedelta(days=21)
+        date = datetime.today() + timedelta(days=20)
 
         scan = scanner.UZScanner(self.success_cb, delay=1)
         asyncio.ensure_future(scan.run())

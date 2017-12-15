@@ -70,7 +70,7 @@ class UZClient(object):
             'User-Agent': self.user_agent,
             'GV-Ajax': '1',
             'GV-Referer': self.base_url,
-            'GV-Token': await self.get_token()
+            # 'GV-Token': await self.get_token()
         }
 
     def uri(self, endpoint):
@@ -134,10 +134,10 @@ class UZClient(object):
             if train.num == train_num:
                 return train
 
-    async def list_coaches(self, train, coach_type):
+    async def list_coaches(self, train, source, destination, coach_type):
         data = dict(
-            station_id_from=train.source_station.id,
-            station_id_till=train.destination_station.id,
+            station_id_from=source.id,
+            station_id_till=destination.id,
             train=train.num,
             model=train.model,
             date_dep=train.departure_time.timestamp,
@@ -148,10 +148,10 @@ class UZClient(object):
         result = await self.call('purchase/coaches/', data=data)
         return [Coach.from_dict(i) for i in result['coaches']]
 
-    async def list_seats(self, train, coach):
+    async def list_seats(self, train, source, destination, coach):
         data = dict(
-            station_id_from=train.source_station.id,
-            station_id_till=train.destination_station.id,
+            station_id_from=source.id,
+            station_id_till=destination.id,
             train=train.num,
             coach_num=coach.num,
             coach_class=coach.klass,
@@ -161,10 +161,10 @@ class UZClient(object):
         result = await self.call('purchase/coach/', data=data)
         return set(chain(*result['value']['places'].values()))
 
-    async def book_seat(self, train, coach, seat, firstname, lastname):
+    async def book_seat(self, train, source, destination, coach, seat, firstname, lastname):
         data = dict(
-            code_station_from=train.source_station.id,
-            code_station_to=train.destination_station.id,
+            code_station_from=source.id,
+            code_station_to=destination.id,
             train=train.num,
             date=train.departure_time.timestamp,
             round_trip=0)

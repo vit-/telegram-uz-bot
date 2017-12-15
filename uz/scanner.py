@@ -91,17 +91,17 @@ class UZScanner(object):
                 return coach_type
 
     @staticmethod
-    async def book(train, coach_types, firstname, lastname):
+    async def book(train, source, destination, coach_types, firstname, lastname):
         with UZClient() as client:
             for coach_type in coach_types:
-                for coach in await client.list_coaches(train, coach_type):
+                for coach in await client.list_coaches(train, source, destination, coach_type):
                     try:
-                        seats = await client.list_seats(train, coach)
+                        seats = await client.list_seats(train, source, destination, coach)
                     except ResponseError:
                         continue
                     for seat in seats:
                         try:
-                            await client.book_seat(train, coach, seat, firstname, lastname)
+                            await client.book_seat(train, source, destination, coach, seat, firstname, lastname)
                         except ResponseError:
                             continue
                         return client.get_session_id()
@@ -128,7 +128,7 @@ class UZScanner(object):
             else:
                 coach_types = train.coach_types
 
-            session_id = await self.book(train, coach_types, data['firstname'], data['lastname'])
+            session_id = await self.book(train, data['source'], data['destination'], coach_types, data['firstname'], data['lastname'])
             if session_id is None:
                 return self.handle_error(scan_id, data, 'No available seats')
 

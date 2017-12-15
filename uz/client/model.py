@@ -58,19 +58,23 @@ class Train(object):
 
     @classmethod
     def from_dict(cls, dikt):
-        return cls(
-            category=dikt['category'],
-            model=dikt['model'],
-            num=dikt['num'],
-            travel_time=dikt['travel_time'],
-            coach_types=[CoachType.from_dict(i) for i in dikt['types']],
-            source_station=Station(dikt['from']['station_id'],
-                                   dikt['from']['station']),
-            destination_station=Station(dikt['till']['station_id'],
-                                        dikt['till']['station']),
-            departure_time=UZTimestamp.from_dict(dikt['from']),
-            arrival_time=UZTimestamp.from_dict(dikt['till'])
-        )
+        try:
+            return cls(
+                category=dikt['category'],
+                model=dikt['model'],
+                num=dikt['num'],
+                travel_time=dikt['travel_time'],
+                coach_types=[CoachType.from_dict(i) for i in dikt['types']],
+                source_station=Station(None,
+                                       dikt['from']['station']),
+                destination_station=Station(None,
+                                            dikt['till']['station']),
+                departure_time=UZTimestamp.from_dict(dikt['from']),
+                arrival_time=UZTimestamp.from_dict(dikt['till'])
+            )
+        except:
+            print(dikt)
+            raise
 
     @staticmethod
     def _station_point(uztimestamp, station):

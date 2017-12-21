@@ -133,3 +133,11 @@ async def test_scan(train_found, ct_letter, ct_found, booked, train,
             assert instance.status(scan_id) == (1, 'No available seats')
     instance.stop()
     instance.cleanup()
+
+
+@pytest.mark.parametrize('ct_letter,ct_found', [
+    ('К', True),
+    ('Z', False)])
+def test_find_coach_type(train, ct_letter, ct_found):
+    result = scanner.UZScanner.find_coach_type(train, ct_letter)
+    assert bool(result) is ct_found
